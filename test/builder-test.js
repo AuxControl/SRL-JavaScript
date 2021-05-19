@@ -190,8 +190,8 @@ describe('Builder isMatching', () => {
 
         let matches_cached = regex_cached.getMatch(testcase)
         assert.equal(matches_cached["first"], 'hello world')
-
     })
+
     it('Stores named captures with implodeString', () => {
 	const query = "begin with literally 'hello '\ncapture (anything once or more) as first";
         const regex_new = new SRL(query);
@@ -205,5 +205,32 @@ describe('Builder isMatching', () => {
         let matches_cached = regex_cached.getMatch(testcase)
         assert.equal(matches_cached["first"], 'world')
 
+    })
+
+    it('es2018 named captures with interpreter', () => {
+        const regex= new SRL("capture (anything) as group", { es2018: true }).get();
+	const expected = new RegExp(/(?<group>.)/g);
+        assert.equal(regex.toString(), expected.toString());
+    })
+
+    it('es2018 named captures with interpreter and multiple captures', () => {
+        const regex= new SRL("capture (anything) as group1 literally \"xxx\" capture (anything) as group2", { es2018: true }).get();
+	const expected = new RegExp(/(?<group1>.)(?:xxx)(?<group2>.)/g);
+        assert.equal(regex.toString(), expected.toString());
+    })
+
+    it('es2018 named captures with builder', () => {
+        const regex = new SRL()
+            .capture((query) => {
+                query.any()
+            }, "group1", true)
+	    .literally("xxx")
+	    .capture((query) => {
+		query.any()
+	    }, "group2", true)
+	    .get()
+
+	const expected = new RegExp(/(?<group1>.)(?:xxx)(?<group2>.)/g);
+        assert.equal(regex.toString(), expected.toString());
     })
 })
